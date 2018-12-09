@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/add"
+            android:icon="@drawable/ic_add_black_24dp"
+            android:title="@string/add" />
+        <item
+            android:id="@+id/search_php"
+            android:icon="@drawable/ic_search_black"
+            android:title="@string/buscarphp" />
+        <item
+            android:id="@+id/cloud"
+            android:icon="@drawable/ic_cloud_download_black_24dp"
+            android:title="@string/bajar_nube" />
+    </group>
+
+    <item
+        android:id="@+id/others"
+        android:title="otros">
+        <menu>
+            <item
+                android:id="@+id/help"
+                android:icon="@drawable/ic_help_outline_black_24dp"
+                android:title="@string/help" />
+            <item
+                android:id="@+id/theme"
+                android:title="@string/switch_theme"
+                app:actionLayout="@layout/switch_item"
+                app:showAsAction="always" />
+            <item
+                android:id="@+id/signout"
+                android:title="@string/signout" />
+        </menu>
+    </item>
+
+</menu>

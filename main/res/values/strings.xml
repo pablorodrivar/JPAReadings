@@ -1,0 +1,53 @@
+<resources>
+    <string name="action_settings">Settings</string>
+    <string name="activity_mostrar">Mostrar</string>
+    <string name="activity_mainmenu">Main Menu</string>
+    <string name="activity_aniadireditar">Add/Edit</string>
+    <string name="action_done">Action Done</string>
+    <string name="aniadir_a">Añadir a: </string>
+    <string name="add">Añadir Libro</string>
+    <string name="add_image">Añadir imagen</string>
+    <string name="appname">Readings</string>
+    <string name="app_name">ProyectoTrimestre</string>
+    <string name="author">Autor</string>
+    <string name="autores">AUTORES</string>
+    <string name="back">back</string>
+    <string name="bajar_nube">Bajar de la nube</string>
+    <string name="barra_busqueda">Buscar por título</string>
+    <string name="borrar">Borrar</string>
+    <string name="btlogin">login</string>
+    <string name="buscar">Buscar Libro</string>
+    <string name="cpassword">cpassword</string>
+    <string name="deleted">eliminado.</string>
+    <string name="editar">Editar</string>
+    <string name="email">e-mail</string>
+    <string name="estanterias">ESTANTERÍAS</string>
+    <string name="f_inicio">Fecha de Inicio</string>
+    <string name="f_fin">Fecha de Finalización</string>
+    <string name="help">Ayuda</string>
+    <string name="input_error">Rellena el campo obligatorio</string>
+    <string name="leidos">Leídos</string>
+    <string name="Leyendo">Leyendo</string>
+    <string name="login_error">El e-mail o la contraseña son incorrectos.</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="numero_libros">0 libros</string>
+    <string name="ordenar_por">Ordenar por </string>
+    <string name="password">password</string>
+    <string name="quieroleer">Quiero Leer</string>
+    <string name="register">register</string>
+    <string name="rellena">Rellena los campos obligatorios</string>
+    <string name="resumen">Resumen</string>
+    <string name="search">Buscar</string>
+    <string name="signup">signup</string>
+    <string name="share">Compartir</string>
+    <string name="signout">Cerrar Sesión</string>
+    <string name="switch_theme">Theme</string>
+    <string name="title">Título</string>
+    <string name="title_activity_display_reading">DisplayReading</string>
+    <string name="vertodos">VER TODOS</string>
+    <string name="buscarphp">Buscar Readings</string>
+
+
+</resources>
+
