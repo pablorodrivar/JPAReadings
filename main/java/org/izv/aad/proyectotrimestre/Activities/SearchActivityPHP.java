@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -44,13 +43,13 @@ public class SearchActivityPHP extends AppCompatActivity {
             };
         });
         String url = "https://php-firebase-puvlo.c9users.io/index.php?uid="+uid;
-        Log.v(MainActivity.TAG,url);
         wv.loadUrl(url);
         this.cargo = true;
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ThemeActivity.leerSharedTheme(this,true);
         setContentView(R.layout.activity_search_php);
         getSupportActionBar().setTitle("Buscar Readings");
         getSupportActionBar().setSubtitle("PHP WebApp");

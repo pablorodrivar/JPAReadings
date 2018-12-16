@@ -15,10 +15,6 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".Activities.MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity
             android:name=".Activities.Mostrar"
             android:label="@string/activity_mostrar"
             android:parentActivityName=".Activities.MainMenu" />
@@ -45,9 +41,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.SearchActivityPHP"
-            android:parentActivityName=".Activities.MainMenu"
-            android:configChanges="keyboardHidden|orientation|screenSize"></activity>
+        <activity
+            android:name=".Activities.SearchActivityPHP"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:parentActivityName=".Activities.MainMenu" />
+        <activity android:name=".Activities.HelpActivity"
+            android:parentActivityName=".Activities.MainMenu"/>
+        <activity android:name=".Activities.ThemeActivity"
+            android:parentActivityName=".Activities.MainMenu"></activity>
     </application>
 
 </manifest>

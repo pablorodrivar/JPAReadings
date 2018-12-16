@@ -13,10 +13,10 @@ public class Utilities {
 
         ContentValues contentValues = new ContentValues();
 
-        //contentValues.put(Contract.TablaAuthor._ID, c.getId()); Puede dar problemas.
-
+        if (a.getId() != 0){
+            contentValues.put(Contract.TablaAuthor.COLUMN_NAME_IDAUTOR,a.getId());
+        }
         contentValues.put(Contract.TablaAuthor.COLUMN_NAME_NOMBRE_AUTOR, a.getNombre());
-       // contentValues.put(Contract.TablaAuthor.COLUMN_NAME_IDAUTOR, a.getId());
         contentValues.put(Contract.TablaAuthor.COLUMN_NAME_FIREBASEKEY, a.getFireBaseKey());
 
         return contentValues;
@@ -25,8 +25,6 @@ public class Utilities {
     public static ContentValues readingsValues(Readings r){
 
         ContentValues contentValues = new ContentValues();
-
-        //contentValues.put(Contract.TablaAuthor._ID, c.getId()); Puede dar problemas.
 
         contentValues.put(Contract.TablaReadings.COLUMN_NAME_TITULO, r.getTitulo());
         contentValues.put(Contract.TablaReadings.COLUMN_NAME_IDAUTOR, r.getId_autor());

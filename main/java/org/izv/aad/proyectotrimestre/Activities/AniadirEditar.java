@@ -2,67 +2,72 @@ package org.izv.aad.proyectotrimestre.Activities;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.Spinner;
 import android.widget.Toast;
-
-import com.google.firebase.storage.FirebaseStorage;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-
 import org.izv.aad.proyectotrimestre.DBConnection.*;
 import org.izv.aad.proyectotrimestre.POJO.Author;
 import org.izv.aad.proyectotrimestre.POJO.Readings;
 import org.izv.aad.proyectotrimestre.R;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
+
 
 public class AniadirEditar extends AppCompatActivity {
     private static final int LOAD_IMAGE_CODE = 1;
-    private static final String TAG = "JAP";
     private String option, key, selectedItem, i_date, e_date, titulo_et, autor_et, resumen_et;
     private Uri imageURI;
     private float rating;
     private Calendar c;
     private ImageButton imageButton;
     private Button fecha_comienzo, fecha_fin;
-    private EditText titulo, autor, resumen;
+    private EditText titulo, resumen;
+    private AutoCompleteTextView autor;
     private Spinner aniadir;
     private RatingBar ratingBar;
     public ReadingsManager rm;
     public AuthorsManager am;
     public FireBaseConnection fbc = new FireBaseConnection();
-    private Readings reading;
+    private Readings reading, readingAntiguo;
     private Author author;
     private Bitmap imageBM;
+    private ProgressBar progress;
+    private TextInputLayout titulot,autort;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ThemeActivity.leerSharedTheme(this);
         setContentView(R.layout.activity_aniadir_editar);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -73,7 +78,6 @@ public class AniadirEditar extends AppCompatActivity {
 
         if (key != null) {
             reading = getReadingReference();
-            Log.v(TAG, reading.toString());
             author = getAuthorReference(reading.getId_autor());
         } else {
             reading = new Readings();
@@ -99,7 +103,8 @@ public class AniadirEditar extends AppCompatActivity {
         am = new AuthorsManager(this);
         titulo = findViewById(R.id.titulo);
         titulo_et = "";
-        autor = findViewById(R.id.autor);
+        autor = (AutoCompleteTextView) findViewById(R.id.autor);
+        autor.setAdapter(getAutocomplete(this));
         autor_et = "";
         resumen = findViewById(R.id.resumen);
         resumen_et = "";
@@ -109,15 +114,21 @@ public class AniadirEditar extends AppCompatActivity {
         aniadir = findViewById(R.id.aniadir);
         ratingBar = findViewById(R.id.ratingBar);
         selectedItem = aniadir.getSelectedItem().toString();
+        titulot = findViewById(R.id.titulo_t);
+        autort = findViewById(R.id.autor_t);
     }
 
     private void insertReading() {
         if (option.equals("add")) {
             if(getFormElements()) {
-
                 reading.setFireBaseKey();
+
+                reading.setFecha_comienzo(i_date);
+                String resumenViejo = reading.getResumen();
+                resumenViejo = resumenViejo.replace("\n","");
+                reading.setResumen(resumenViejo);
+                reading.setFecha_fin(e_date);
                 String root = "/" + fbc.firebaseAuth.getCurrentUser().getUid() + "/" + reading.getFireBaseKey() + ".jpg";
-                Log.v(TAG + "HOLA", root);
                 reading.setDrawable_portada(root);
                 if(imageBM != null){
                     DBManager.insert(rm, fbc, reading,imageBM);
@@ -126,33 +137,45 @@ public class AniadirEditar extends AppCompatActivity {
                     DBManager.insert(rm, fbc, reading,imageBM);
                 }
 
-                Log.v(TAG, "insertado");
-                Intent i = new Intent(AniadirEditar.this, Mostrar.class);
-                Log.v(TAG, "toMAIN");
+                Intent i = new Intent(AniadirEditar.this, MainMenu.class);
                 startActivity(i);
             }
         }
         else if(option.equals("edit")) {
             if(getFormElements()) {
+
+                if (!(author.getNombre() == autor_et)){
+                    if (am.authorExists(autor_et)) {
+                        reading.setId_autor(am.getAuthor(autor_et).getId());
+                    } else {
+                        DBManager.update(am, fbc, author);
+                        author.setId(am.getAuthor(author.getNombre()).getId());
+                        reading.setId_autor(author.getId());
+                    }
+                }
                 if (am.authorExists(autor_et)) {
                     reading.setId_autor(am.getAuthor(autor_et).getId());
                 } else {
+                    author.setFireBaseKey(key);
+
                     DBManager.update(am, fbc, author);
                     author.setId(am.getAuthor(author.getNombre()).getId());
                     reading.setId_autor(author.getId());
                 }
-                reading.setFireBaseKey();
                 String root = "/" + fbc.firebaseAuth.getCurrentUser().getUid() + "/" + reading.getFireBaseKey() + ".jpg";
                 reading.setDrawable_portada(root);
+                rm.delete(key);
+                String resumenViejo = reading.getResumen();
+                resumenViejo = resumenViejo.replace("\n","");
+                reading.setResumen(resumenViejo);
                 if(imageBM != null){
                     DBManager.update(rm, fbc, reading,imageBM);
-                }else{
-                    imageBM = BitmapFactory.decodeResource(getApplicationContext().getResources(),R.drawable.book);
-                    DBManager.update(rm, fbc, reading,imageBM);
+                }else {
+                    imageBM = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.book);
+                    DBManager.update(rm, fbc, reading, imageBM);
                 }
-                Log.v(TAG, "insertado");
-                Log.v(TAG, "toDISPLAY");
-                Intent i = new Intent(AniadirEditar.this, DisplayReading.class);
+
+                Intent i = new Intent(AniadirEditar.this, MainMenu.class);
                 i.putExtra("reading", reading.getFireBaseKey());
                 startActivity(i);
             }
@@ -175,7 +198,7 @@ public class AniadirEditar extends AppCompatActivity {
                 try {
                     imageBM = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
                 } catch (IOException e) {
-                    Log.v(TAG, e.toString());
+
                 }
                 imageButton.setImageBitmap(imageBM);
             }
@@ -208,26 +231,40 @@ public class AniadirEditar extends AppCompatActivity {
         return am.getAuthor(id);
     }
 
+    private ArrayAdapter<String> getAutocomplete(Context context) {
+       List<String> listaAutores = rm.getListaNombres(rm.getReadings(null,null,null));
+       Set<String> hs = new HashSet<>();
+           hs.addAll(listaAutores);
+           listaAutores.clear();
+           listaAutores.addAll(hs);
+           String[] autoComplete = new String[listaAutores.size()];
+           autoComplete = listaAutores.toArray(autoComplete);
+       return new ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, autoComplete);
+    }
+
+
     private boolean getFormElements() {
         boolean correctlySet = false;
         titulo_et = titulo.getText().toString();
         autor_et = autor.getText().toString();
-
-        if (titulo_et.equals("") || autor_et.equals("")) {
+        rating = ratingBar.getRating();
+        if (titulo_et.equals("")) {
             Toast.makeText(AniadirEditar.this, R.string.rellena, Toast.LENGTH_SHORT).show();
-            titulo.setError(getString(R.string.input_error));
-            autor.setError(getString(R.string.input_error));
-            //Log.v(TAG, "titulo:" + titulo_et + " autor: " + autor_et + " imagen: " + imageURI.toString());
-        } else if(!titulo_et.equals("")){
-            Log.v(TAG, titulo_et);
+            titulot.setError(getString(R.string.input_error));
+        }
+        if (autor_et.equals("")){
+            Toast.makeText(AniadirEditar.this, R.string.rellena, Toast.LENGTH_SHORT).show();
+            autort.setError(getString(R.string.input_error));
+        }
+
+        if(!titulo_et.equals("")){
             reading.setTitulo(titulo_et);
             if (titulo_et.equals("")) {
-                titulo.setError(getString(R.string.input_error));
+                titulot.setError(getString(R.string.input_error));
             }
             author.setNombre(autor_et);
-            Log.v(TAG, "NOMBRE DEL AUTOR: " + autor_et);
             if (autor_et.equals("")) {
-                autor.setError(getString(R.string.input_error));
+                autort.setError(getString(R.string.input_error));
             }
             if (am.authorExists(autor_et)) {
                     reading.setId_autor(am.getAuthor(autor_et).getId());
@@ -235,10 +272,9 @@ public class AniadirEditar extends AppCompatActivity {
                     author.setFireBaseKey();
                     DBManager.insert(am, fbc, author);
                     author.setId(am.getAuthor(author.getNombre()).getId());
+                    author.setFireBaseKey();
                     reading.setId_autor(author.getId());
                 }
-            //reading.setId_autor(author.getId());
-            Log.v(TAG, "ID DEL AUTOR: " + author.getId());
             reading.setValoracion(rating);
             if(imageURI != null){
                 reading.setDrawable_portada(imageURI.toString());
@@ -270,11 +306,40 @@ public class AniadirEditar extends AppCompatActivity {
             autor.setText(autor_et);
             resumen_et = reading.getResumen();
             resumen.setText(resumen_et);
-            //imageButton.setImageURI(Uri.parse(reading.getDrawable_portada()));
-            imageButton.setImageBitmap(DBManager.getImage(reading));
+
+            StorageReference imageRef = fbc.storageRef.child(reading.getDrawable_portada());
+            final long ONE_MEGABYTE = 2048 * 2048;
+            imageRef.getBytes(ONE_MEGABYTE).addOnCompleteListener(new OnCompleteListener<byte[]>() {
+                @Override
+                public void onComplete(@NonNull Task<byte[]> task) {
+                    if(task.isSuccessful()) {
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.inMutable = true;
+                        Bitmap bmp = BitmapFactory.decodeByteArray(task.getResult(), 0, task.getResult().length, options);
+                        imageButton.setImageBitmap(bmp);
+                        imageBM = bmp;
+                    }else {
+                        imageButton.setImageResource(R.drawable.ic_no_internet);
+                    }
+                }
+            });
             imageButton.setAlpha(0.2f);
-            fecha_comienzo.setText(reading.getFecha_comienzo());
-            fecha_fin.setText(reading.getFecha_fin());
+            try {
+                if (!(reading.getFecha_comienzo().equals(null)) && (!reading.getFecha_comienzo().equals(""))) {
+                    fecha_comienzo.setText(reading.getFecha_comienzo());
+                }
+            }catch (Exception e){
+                fecha_comienzo.setText("Fecha de comienzo");
+            }
+
+           try {
+                if (!(reading.getFecha_fin().equals(null)) && (!reading.getFecha_fin().equals(""))){
+                   fecha_fin.setText(reading.getFecha_fin());
+               }
+           } catch(Exception e){
+               fecha_fin.setText("Fecha de fin");
+           }
+
             ratingBar.setRating(reading.getValoracion());
             resumen.setText(reading.getResumen());
         }
@@ -295,10 +360,13 @@ public class AniadirEditar extends AppCompatActivity {
                         case "Quiero Leer":
                             fecha_comienzo.setVisibility(View.INVISIBLE);
                             fecha_fin.setVisibility(View.INVISIBLE);
+                            e_date = null;
+                            i_date = null;
                             break;
                         case "Leyendo":
                             fecha_comienzo.setVisibility(View.VISIBLE);
                             fecha_fin.setVisibility(View.INVISIBLE);
+                            e_date = null;
                             break;
                         case "Leidos":
                             fecha_comienzo.setVisibility(View.VISIBLE);
@@ -330,7 +398,7 @@ public class AniadirEditar extends AppCompatActivity {
                             i_date = mDay + "/" + (mMonth + 1) + "/" + mYear;
                             fecha_comienzo.setText(i_date);
                         }
-                    }, day, month, year);
+                    }, year, month, day);
                     datePickerDialog.show();
                 }
             });
@@ -349,7 +417,7 @@ public class AniadirEditar extends AppCompatActivity {
                             fecha_fin.setText(e_date);
 
                         }
-                    }, day, month, year);
+                    }, year, month, day);
                     datePickerDialog.show();
                 }
             });

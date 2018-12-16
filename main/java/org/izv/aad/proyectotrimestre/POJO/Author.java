@@ -12,7 +12,8 @@ public class Author implements Parcelable{
 
     public Author(String nombre){
         this.nombre = nombre;
-        String key = nombre.replace(" ","");
+        String key = nombre.replace(" ", "").replace(".","")
+                .replace("#", "").replace("$", "").replace("[", "").replace("]","");
         this.fireBaseKey = key.toLowerCase() + id;
     }
 
@@ -24,7 +25,8 @@ public class Author implements Parcelable{
 
     public Author(){
         this.nombre = "Vacío";
-        String key = nombre.replace(" ","");
+        String key = nombre.replace(" ", "").replace(".","")
+                .replace("#", "").replace("$", "").replace("[", "").replace("]","");
         this.fireBaseKey = key.toLowerCase() + id;
     }
 
@@ -45,6 +47,13 @@ public class Author implements Parcelable{
             return new Author[size];
         }
     };
+
+    public String getIDdesdeFirebasekey(){
+        String fireSinID = this.nombre.toLowerCase().replace(" ", "").replace(".","")
+                .replace("#", "").replace("$", "").replace("[", "").replace("]","");
+        int sub = fireSinID.length();
+        return this.fireBaseKey.substring(sub);
+    }
 
     public int getId() {
         return id;
@@ -70,7 +79,8 @@ public class Author implements Parcelable{
         this.fireBaseKey = fireBaseKey;
     }
 
-    public void setFireBaseKey(){this.fireBaseKey = nombre.toLowerCase().replace(" ","") + id;}
+    public void setFireBaseKey(){this.fireBaseKey = nombre.toLowerCase().replace(" ", "").replace(".","")
+            .replace("#", "").replace("$", "").replace("[", "").replace("]","") + id;}
 
     @Override
     public String toString() {

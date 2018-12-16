@@ -28,6 +28,7 @@ public class Mostrar extends AppCompatActivity {
     private Spinner sp;
     private ImageView inv;
     // Algunas tienen Getters y Setters, los incluyo a continuación.
+    private boolean cargado = false; private void setCargado(boolean car){this.cargado = car;} private boolean getCargado(){return this.cargado;}
     private int categoria; private void setCategoria(int cate){this.categoria = cate;} private int getCategoria(){return this.categoria;}
     private String condicion;private void setCondicion(String con){this.condicion = con;}private String getCondicion(){return this.condicion;}
     private String condicionInicial; private void setCondicionInicial(String con){this.condicionInicial = con;} private String getCondicionInicial(){return this.condicionInicial;}
@@ -53,7 +54,9 @@ public class Mostrar extends AppCompatActivity {
         Intent i = new Intent(Mostrar.this, DisplayReading.class);
         i.putExtra("tipo", categoria);
         i.putExtra("reading", item.getFireBaseKey());
-        startActivity(i);}
+        startActivityForResult(i,0);
+    }
+
     // Crear el Adapter con la funcion personalizada para onClick.
     private Adapter newAdapter(){
         return new Adapter(getListaFinal(), new Adapter.OnItemClickListener(){@Override public void onItemClick(Readings item){irA(item);}},getNombresFinal());
@@ -69,6 +72,7 @@ public class Mostrar extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ThemeActivity.leerSharedTheme(this,true);
         setContentView(R.layout.activity_mostrar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         //  Instancio ReadingsManager.

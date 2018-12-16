@@ -2,19 +2,9 @@ package org.izv.aad.proyectotrimestre.POJO;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
 import com.google.firebase.database.DataSnapshot;
-
-import org.izv.aad.proyectotrimestre.Activities.MainActivity;
-import org.izv.aad.proyectotrimestre.DBConnection.AuthorsManager;
-import org.izv.aad.proyectotrimestre.DBConnection.FireBaseConnection;
-import org.izv.aad.proyectotrimestre.DBConnection.ReadingsManager;
-import org.izv.aad.proyectotrimestre.R;
-
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.izv.aad.proyectotrimestre.Activities.MainMenu.fbc;
 
 public class Readings implements Parcelable{
 
@@ -44,7 +34,6 @@ public class Readings implements Parcelable{
     }
 
     public Readings(DataSnapshot dataSnapshot){
-        //this.setTitulo(dataSnapshot.get);
     }
 
     public Readings(String titulo, int id_autor, String drawable_portada, String fecha_comienzo, String fecha_fin, float valoracion, String resumen) {
@@ -55,7 +44,8 @@ public class Readings implements Parcelable{
         this.fecha_comienzo = fecha_comienzo;
         this.fecha_fin = fecha_fin;
         this.resumen = resumen;
-        this.fireBaseKey = titulo.toLowerCase().replace(" ", "") + id_autor;
+        this.fireBaseKey = titulo.toLowerCase().replace(" ", "").replace(".","")
+                .replace("#", "").replace("$", "").replace("[", "").replace("]","") + id_autor;
     }
 
     public Readings(int id, String titulo, int id_autor, String drawable_portada, String fecha_comienzo, String fecha_fin, float valoracion, String resumen, String fireBaseKey) {
@@ -166,7 +156,8 @@ public class Readings implements Parcelable{
         this.fireBaseKey = fireBaseKey;
     }
 
-    public void setFireBaseKey(){this.fireBaseKey = titulo.toLowerCase().replace(" ", "") + id_autor + id;}
+    public void setFireBaseKey(){this.fireBaseKey = titulo.toLowerCase().replace(" ", "").replace(".","")
+            .replace("#", "").replace("$", "").replace("[", "").replace("]","") + id_autor;}
 
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
@@ -175,8 +166,7 @@ public class Readings implements Parcelable{
         result.put("valoracion", valoracion);
         result.put("titulo", titulo);
         result.put("fecha_comienzo", fecha_comienzo);
-        result.put("fecha_comienzo", fecha_fin);
-        result.put("fecha_comienzo", fecha_fin);
+        result.put("fecha_fin", fecha_fin);
         result.put("resumen", resumen);
         return result;
     }

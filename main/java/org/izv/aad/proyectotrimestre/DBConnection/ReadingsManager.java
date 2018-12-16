@@ -4,16 +4,12 @@ package org.izv.aad.proyectotrimestre.DBConnection;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
-
 import org.izv.aad.proyectotrimestre.POJO.Author;
 import org.izv.aad.proyectotrimestre.POJO.Readings;
 import org.izv.aad.proyectotrimestre.Utilities;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.izv.aad.proyectotrimestre.Activities.MainActivity.TAG;
 
 public class ReadingsManager {
 
@@ -67,17 +63,21 @@ public class ReadingsManager {
 
         return cuenta;
     }
+    public int delete(String firebasekey){
 
-    public int delete(String titulo){
+        String condicion = Contract.TablaReadings.COLUMN_NAME_FIREBASEKEY + " = '"+firebasekey+"'";
 
-        String condicion = Contract.TablaReadings.COLUMN_NAME_TITULO + " = ?";
-
-        String[] argumentos = { titulo };
-
-        int cuenta = bd.delete(Contract.TablaReadings.TABLE_NAME, condicion,argumentos);
+        int cuenta = 0;
+        try {
+            cuenta = bd.delete(Contract.TablaReadings.TABLE_NAME, condicion,null);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
         return cuenta;
     }
+
+
 
     public int update(Readings r) {
 
@@ -89,13 +89,6 @@ public class ReadingsManager {
 
     //Objeto que representa una esstructura de datos mediante el cual puedo recorrer la consulta.
     public Cursor getCursor(String condicion, String[] argumentos,String order) {
-        Log.v(TAG, bd.query(Contract.TablaReadings.TABLE_NAME,
-                null, //null = *
-                condicion, //where
-                argumentos, //Array de los argumentos del select
-                null, //Lo que va después del group by
-                null, //Lo que va después del having (va solo con group by)
-                order).toString());
         return bd.query(    Contract.TablaReadings.TABLE_NAME,
                 null, //null = *
                 condicion, //where
@@ -121,7 +114,7 @@ public class ReadingsManager {
         lectura.setDrawable_portada(c.getString(c.getColumnIndex(Contract.TablaReadings.COLUMN_NAME_FOTO)));
         lectura.setFecha_comienzo(c.getString(c.getColumnIndex(Contract.TablaReadings.COLUMN_NAME_FCOMIENZO)));
         lectura.setFecha_fin(c.getString(c.getColumnIndex(Contract.TablaReadings.COLUMN_NAME_FFIN)));
-        lectura.setValoracion(c.getInt(c.getColumnIndex(Contract.TablaReadings.COLUMN_NAME_VALORACION)));
+        lectura.setValoracion(c.getFloat(c.getColumnIndex(Contract.TablaReadings.COLUMN_NAME_VALORACION)));
         lectura.setResumen(c.getString(c.getColumnIndex(Contract.TablaReadings.COLUMN_NAME_RESUMEN)));
         lectura.setFireBaseKey(c.getString(c.getColumnIndex(Contract.TablaReadings.COLUMN_NAME_FIREBASEKEY)));
 
@@ -130,8 +123,9 @@ public class ReadingsManager {
 
     public List<String> getListaNombres(List<Readings> readings){
         List<String> nombres = new ArrayList<>();
+
         for(Readings r : readings){
-            nombres.add(getNombreAutor(r));
+            nombres.add(getAuthor(r).getNombre());
         }
         return nombres;
     }

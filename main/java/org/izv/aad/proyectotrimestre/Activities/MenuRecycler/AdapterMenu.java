@@ -2,7 +2,6 @@ package org.izv.aad.proyectotrimestre.Activities.MenuRecycler;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,7 +43,6 @@ public class AdapterMenu extends RecyclerView.Adapter <AdapterMenu.MyViewHolder>
 
     @Override
     public int getItemCount() {
-        Log.d("longitud count", String.valueOf(listAuthors.size()));
         return listAuthors.size();
     }
 

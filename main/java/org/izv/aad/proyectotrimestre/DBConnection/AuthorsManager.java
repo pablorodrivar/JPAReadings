@@ -3,18 +3,10 @@ package org.izv.aad.proyectotrimestre.DBConnection;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
-
-
-import org.izv.aad.proyectotrimestre.Activities.MainActivity;
 import org.izv.aad.proyectotrimestre.POJO.Author;
-import org.izv.aad.proyectotrimestre.POJO.Readings;
 import org.izv.aad.proyectotrimestre.Utilities;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.izv.aad.proyectotrimestre.Activities.MainActivity.TAG;
 
 public class AuthorsManager {
 
@@ -189,7 +181,6 @@ public class AuthorsManager {
     }
         public Author getAuthor(int id){
         String condicion = Contract.TablaAuthor.COLUMN_NAME_IDAUTOR+"='"+id+"'";
-            Log.v(TAG, "CONDICION" + condicion);
         Cursor c = getCursor(condicion,null);
         Author a = getRow(c);
         return a;
@@ -198,7 +189,6 @@ public class AuthorsManager {
         public Author getAuthor(String nombre){
             String condicion = Contract.TablaAuthor.COLUMN_NAME_NOMBRE_AUTOR+"='"+nombre+"'";
             Cursor c = getCursor(condicion,null);
-            Log.v(TAG, "Condicion" + condicion);
             Author a = getRow(c);
             return a;
         }

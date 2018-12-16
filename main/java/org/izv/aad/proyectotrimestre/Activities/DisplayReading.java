@@ -3,7 +3,6 @@ package org.izv.aad.proyectotrimestre.Activities;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -27,20 +26,18 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.storage.StorageReference;
-
 import org.izv.aad.proyectotrimestre.DBConnection.AuthorsManager;
 import org.izv.aad.proyectotrimestre.DBConnection.Contract;
 import org.izv.aad.proyectotrimestre.DBConnection.DBManager;
@@ -54,11 +51,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-import static org.izv.aad.proyectotrimestre.Activities.MainActivity.TAG;
-import static org.izv.aad.proyectotrimestre.Activities.MainMenu.fbc;
 
 public class DisplayReading extends AppCompatActivity {
-    public final String TAG = "JAP";
+
     private ImageView imageView;
     private TextView titulo, autor, resumen, f_inicio, f_fin;
     private RatingBar ratingBar;
@@ -69,7 +64,7 @@ public class DisplayReading extends AppCompatActivity {
     private AuthorsManager authorsManager;
     private FireBaseConnection fbc;
     private String reading_id;
-
+    private ProgressBar progress;
     private Bitmap imagebm;
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -81,22 +76,19 @@ public class DisplayReading extends AppCompatActivity {
         ratingBar = findViewById(R.id.ratingBar);
         f_inicio = findViewById(R.id.fecha_inicio);
         f_fin = findViewById(R.id.fecha_fin);
+        progress = findViewById(R.id.progressBar4);
 
         readingsManager = new ReadingsManager(this);
         authorsManager = new AuthorsManager(this);
         fbc = new FireBaseConnection();
         reading_id = getIntent().getStringExtra("reading");
-        //Cursor c = readingsManager.getCursor(Contract.TablaReadings.COLUMN_NAME_FIREBASEKEY + "='" + reading_id + "'",  null ,null);
-        //Log.v(TAG, c.toString());
+
         readings = readingsManager.getReadings(Contract.TablaReadings.COLUMN_NAME_FIREBASEKEY + "='" + reading_id + "'",  null ,null);
         reading = readings.get(0);
-        Log.v(TAG,reading.toString());
         author = authorsManager.getRow(authorsManager.getCursor(Contract.TablaAuthor.COLUMN_NAME_IDAUTOR + "='" + String.valueOf(reading.getId_autor()) + "'",null));
 
-        //Bitmap bmp = DBManager.getImage(reading);
         StorageReference imageRef = fbc.storageRef.child(reading.getDrawable_portada());
-            Log.v(TAG, reading.getDrawable_portada() + " PORTADA PROCESANDOSE");
-            final long ONE_MEGABYTE = 1024 * 1024;
+            final long ONE_MEGABYTE = 2048 * 2048;
             imageRef.getBytes(ONE_MEGABYTE).addOnCompleteListener(new OnCompleteListener<byte[]>() {
                 @Override
                 public void onComplete(@NonNull Task<byte[]> task) {
@@ -104,23 +96,33 @@ public class DisplayReading extends AppCompatActivity {
                         BitmapFactory.Options options = new BitmapFactory.Options();
                         options.inMutable = true;
                         Bitmap bmp = BitmapFactory.decodeByteArray(task.getResult(), 0, task.getResult().length, options);
-                        Log.v(TAG, reading.getDrawable_portada() + " RUTA DE LA PORTADA");
                         imageView.setImageBitmap(bmp);
                         imagebm = bmp;
-                        //progress.setVisibility(View.GONE);
+                        progress.setVisibility(View.GONE);
                     }else{
                         imageView.setImageResource(R.drawable.ic_no_internet);
                         imagebm = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_no_internet);
+                        progress.setVisibility(View.GONE);
                     }
                 }
             });
-        //imageView.setImageBitmap(bmp);
+
         getSupportActionBar().setTitle(reading.getTitulo());
         getSupportActionBar().setSubtitle(readingsManager.getNombreAutor(reading));
         titulo.setText(reading.getTitulo());
         autor.setText(author.getNombre());
-        f_inicio.setText("Fecha comienzo: \n"+reading.getFecha_comienzo());
-        f_fin.setText("Fecha fin: \n"+reading.getFecha_fin());
+
+        if(reading.getFecha_comienzo() == null) {
+            f_inicio.setText("Fecha comienzo: \n" + "Aún no comenzado");
+        }else{
+            f_inicio.setText("Fecha comienzo: \n" + reading.getFecha_comienzo());
+        }
+        if(reading.getFecha_fin() == null){
+            f_fin.setText("Fecha fin: \n" + "Aún no terminado");
+        }else{
+            f_fin.setText("Fecha fin: \n"+reading.getFecha_fin());
+        }
+
         resumen.setText(reading.getResumen());
         ratingBar.setRating(reading.getValoracion());
 
@@ -137,6 +139,7 @@ public class DisplayReading extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ThemeActivity.leerSharedTheme(this);
         setContentView(R.layout.activity_display_reading);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -161,8 +164,9 @@ public class DisplayReading extends AppCompatActivity {
                 return true;
             case R.id.borrar:
                 showAlert();
-                //Intent i = new Intent(DisplayReading.this, Mostrar.class);
-                //startActivity(i);
+                return true;
+            case R.id.share:
+                sendEmail(reading,author);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -171,8 +175,12 @@ public class DisplayReading extends AppCompatActivity {
 
     public void delete(){
         String snackText = reading.getTitulo() + " " + getString(R.string.deleted);
-        DBManager.delete(authorsManager,fbc,author);
         DBManager.delete(readingsManager,fbc,reading);
+        List <Readings> lista = readingsManager.getReadings(Contract.TablaReadings.COLUMN_NAME_IDAUTOR+" = '"+author.getId()+"'", null, null);
+        int cuenta = lista.size();
+        if (cuenta == 0){
+            DBManager.delete(authorsManager,fbc,author);
+        }
         Intent i = new Intent(DisplayReading.this, MainMenu.class);
         startActivity(i);
         Toast.makeText(DisplayReading.this, snackText,Toast.LENGTH_LONG).show();
@@ -312,7 +320,7 @@ public class DisplayReading extends AppCompatActivity {
 
             int bmwidth = imagebm.getWidth();
             int bmheight = imagebm.getHeight();
-            Log.v(TAG, "width: " + bmwidth + "  height: " + bmheight);
+
             while (bmwidth > 300 || bmheight > 300) {
                 bmwidth = bmwidth - bmwidth / 10;
                 bmheight = bmheight - bmheight / 10;
@@ -357,16 +365,12 @@ public class DisplayReading extends AppCompatActivity {
             textMeasure = paint.measureText(fechafin[1]);
             canvas.drawText(fechafin[1], (pageWidth - textMeasure) * 3 / 4, line + 85, paint);
 
-            textMeasure = paint.measureText("Valoración : " + ratingBar.getNumStars());
-            canvas.drawText(String.valueOf("Valoración : " + ratingBar.getNumStars()), (pageWidth - textMeasure) / 2, line + 115, paint);
+            textMeasure = paint.measureText("Valoración : " + ratingBar.getRating());
+            canvas.drawText(String.valueOf("Valoración : " + ratingBar.getRating()), (pageWidth - textMeasure) / 2, line + 115, paint);
 
             paint.setTextSize(20);
             String[] palabras = resumen.getText().toString().split(" ");
-            Log.v(TAG, "Tamaño resumen: " + resumen.getText().toString().length());
-            Log.v(TAG, "Tamaño array de PALABRAS: " + palabras.length);
-            Log.v(TAG, "Ancho de página: " + pageWidth);
-            Log.v(TAG, "Margen de página: " + leftMargin);
-            Log.v(TAG, "Tamaño de linea: " + linea);
+
             int posicion = 0;
             line = line + 150;
             while (posicion < palabras.length) {
@@ -375,20 +379,35 @@ public class DisplayReading extends AppCompatActivity {
                 int letras;
                 for (int i = 0; i < linea && posicion < palabras.length; i = i + letras) {
                     texto = texto + palabras[posicion] + " ";
-                    Log.v(TAG, palabras[posicion]);
+
                     letras = palabras[posicion].length() + 1;
                     posicion++;
-                    Log.v(TAG, "Contador de posición: " + posicion + " = i: " + i);
                 }
 
-
                 canvas.drawText(texto, leftMargin, line, paint);
-                //Log.v(TAG, "texto: "+texto);
 
                 line = line + 20;
 
             }
 
+        }
+    }
+    protected void sendEmail(Readings reading, Author author) {
+        String[] TO = {""};
+        String[] CC = {""};
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        emailIntent.setData(Uri.parse("mailto:"));
+        emailIntent.setType("text/plain");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
+        emailIntent.putExtra(Intent.EXTRA_CC, CC);
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Mira este libro");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, "Te recomiendo leer "+reading.getTitulo()+", escrito por "+author.getNombre()+".\r\n\r\n\r\n enviado desde JPAReadings");
+
+        try {
+            startActivity(Intent.createChooser(emailIntent, "Enviar email..."));
+            finish();
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(DisplayReading.this,"No tienes clientes de email instalados.", Toast.LENGTH_SHORT).show();
         }
     }
 }

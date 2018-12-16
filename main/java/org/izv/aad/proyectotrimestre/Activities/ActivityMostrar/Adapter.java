@@ -1,11 +1,8 @@
 package org.izv.aad.proyectotrimestre.Activities.ActivityMostrar;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.AnimationDrawable;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,21 +10,13 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.storage.StorageReference;
-
-import org.izv.aad.proyectotrimestre.DBConnection.DBManager;
-import org.izv.aad.proyectotrimestre.DBConnection.ReadingsManager;
 import org.izv.aad.proyectotrimestre.POJO.Readings;
 import org.izv.aad.proyectotrimestre.R;
-
 import java.util.List;
-
-import static org.izv.aad.proyectotrimestre.Activities.MainActivity.TAG;
 import static org.izv.aad.proyectotrimestre.Activities.MainMenu.fbc;
-import static org.izv.aad.proyectotrimestre.Activities.MainMenu.readingsManager;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     public interface OnItemClickListener {
@@ -80,14 +69,17 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         public void bind(final Readings item, final OnItemClickListener listener, int position) {
             titulo.setText(item.getTitulo());
             autor.setText(nAutor.get(position));
-            comienzo.setText("Inicio: "+item.getFecha_comienzo());
+            if (item.getFecha_comienzo() == null){
+                comienzo.setText("Aún no empezado");
+            }else comienzo.setText("Inicio: "+item.getFecha_comienzo());
             if (item.getFecha_fin() == null){
                 fin.setText("Aún no terminado");
             }else fin.setText("Fin: "+item.getFecha_fin());
-            //portada.setImageURI(Uri.parse(item.getDrawable_portada()));
+            //portada.setImageURI(DBManager.getImageURI(item));
+            //progress.setVisibility(View.GONE);
+            //Log.v(TAG, DBManager.getImageURI(item) +"");
             StorageReference imageRef = fbc.storageRef.child(item.getDrawable_portada());
-            Log.v(TAG, item.getDrawable_portada() + " PORTADA PROCESANDOSE");
-            final long ONE_MEGABYTE = 1024 * 1024;
+            final long ONE_MEGABYTE = 2048 * 2048;
             imageRef.getBytes(ONE_MEGABYTE).addOnCompleteListener(new OnCompleteListener<byte[]>() {
                 @Override
                 public void onComplete(@NonNull Task<byte[]> task) {
@@ -95,7 +87,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
                         BitmapFactory.Options options = new BitmapFactory.Options();
                         options.inMutable = true;
                         Bitmap bmp = BitmapFactory.decodeByteArray(task.getResult(), 0, task.getResult().length, options);
-                        Log.v(TAG, item.getDrawable_portada() + " RUTA DE LA PORTADA");
                         portada.setImageBitmap(bmp);
                         progress.setVisibility(View.GONE);
                     }else {
@@ -104,7 +95,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
                     }
                 }
             });
-            Log.v(TAG,item.getValoracion()+"");
             rating.setRating(item.getValoracion());
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) {
